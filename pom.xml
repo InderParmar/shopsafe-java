@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.shopsafe</groupId>
+    <artifactId>shopsafe-java</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>ShopSafe Java</name>
+    <description>
+        Selenium + JUnit 5 + Maven port of the ShopSafe e-commerce test suite.
+        Validates saucedemo.com across Login, Inventory, Cart, Checkout, and E2E flows.
+    </description>
+
+    <properties>
+        <!-- Java version -->
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Dependency versions — bump here only, nowhere else -->
+        <selenium.version>4.18.1</selenium.version>
+        <junit.version>5.10.2</junit.version>
+        <webdrivermanager.version>5.8.0</webdrivermanager.version>
+        <jackson.version>2.17.0</jackson.version>
+        <surefire.version>3.2.5</surefire.version>
+
+        <!-- Runtime config — overridable via -D on the command line or in CI -->
+        <browser>chrome</browser>
+        <headless>false</headless>
+        <base.url>https://www.saucedemo.com</base.url>
+    </properties>
+
+    <dependencies>
+
+        <!-- ── Selenium WebDriver ───────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>
+        </dependency>
+
+        <!-- ── JUnit 5 ──────────────────────────────────────────────────── -->
+        <!-- jupiter-api: annotations (@Test, @BeforeEach, etc.) used in src -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- jupiter-engine: runtime engine that actually runs the tests -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- jupiter-params: enables @ParameterizedTest + @MethodSource / @CsvSource -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ── WebDriverManager ─────────────────────────────────────────── -->
+        <!-- Automatically downloads and configures the correct ChromeDriver / GeckoDriver.
+             Replaces the manual PATH setup that Python's webdriver-manager handled. -->
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>${webdrivermanager.version}</version>
+        </dependency>
+
+        <!-- ── Jackson Databind ─────────────────────────────────────────── -->
+        <!-- Reads JSON test-data files (login_data.json, checkout_data.json, etc.)
+             into Java POJOs — same role as Python's json.load() + dataclasses. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <!-- ── Maven Surefire ───────────────────────────────────────── -->
+            <!-- Surefire is the plugin that runs tests during `mvn test`.
+                 Without explicit config it defaults to JUnit 4; we must tell it
+                 to use the JUnit Platform (the launcher that discovers JUnit 5 tests).
+                 We also pass browser / headless / base.url as system properties so
+                 every test class can read them via System.getProperty(). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire.version}</version>
+                <configuration>
+                    <useModulePath>false</useModulePath>
+                    <systemPropertyVariables>
+                        <browser>${browser}</browser>
+                        <headless>${headless}</headless>
+                        <base.url>${base.url}</base.url>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
+            <!-- ── Maven Compiler ───────────────────────────────────────── -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
