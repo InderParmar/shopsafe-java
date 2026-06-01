@@ -1,0 +1,4 @@
+[
+  { "firstName": "John",  "lastName": "Doe",   "postalCode": "M5V2T6", "expected": "success"   },
+  { "firstName": "Jane",  "lastName": "Smith",  "postalCode": "",       "expected": "zip_error" }
+]
