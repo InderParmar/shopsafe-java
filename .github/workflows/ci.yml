@@ -1,0 +1,94 @@
+name: shopsafe-java
+
+# Trigger: every push to main and every pull request targeting main.
+# Mirrors the Python pipeline's trigger configuration.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    # Run Chrome and Firefox jobs in parallel — same as the Python matrix strategy.
+    # Each job gets its own runner and browser; both must pass for the workflow to be green.
+    strategy:
+      # fail-fast: false ensures Firefox always completes even if Chrome fails.
+      # Without this, a Chrome failure would cancel the Firefox job immediately.
+      fail-fast: false
+      matrix:
+        browser: [ chrome, firefox ]
+
+    # Use the latest Ubuntu runner — same OS as the Python pipeline.
+    runs-on: ubuntu-latest
+
+    # Job name shown in the GitHub Actions UI: "test (chrome)" / "test (firefox)"
+    name: test (${{ matrix.browser }})
+
+    steps:
+
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── 2. Java 17 ─────────────────────────────────────────────────────────
+      # Temurin is the Eclipse Foundation's production-grade OpenJDK distribution.
+      # Java 17 is the LTS release and matches our pom.xml compiler target.
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          # Cache Maven's local repository (~/.m2) so dependencies are only
+          # downloaded on the first run — subsequent runs restore from cache.
+          cache: maven
+
+      # ── 3. Chrome / Firefox ────────────────────────────────────────────────
+      # GitHub-hosted Ubuntu runners include Chrome pre-installed.
+      # WebDriverManager handles the driver binary — no manual setup needed.
+      - name: Set up Chrome
+        if: matrix.browser == 'chrome'
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Set up Firefox
+        if: matrix.browser == 'firefox'
+        uses: browser-actions/setup-firefox@v1
+
+      # ── 4. Run tests ───────────────────────────────────────────────────────
+      # -Dbrowser passes the matrix browser value to DriverFactory via System.getProperty.
+      # -Dheadless=true forces headless mode (DriverFactory also auto-detects CI=true).
+      # The CI environment variable is set automatically by GitHub Actions — DriverFactory
+      # reads it via System.getenv("CI") so headless mode activates even without -Dheadless.
+      - name: Run test suite (${{ matrix.browser }})
+        run: |
+          mvn test \
+            -Dbrowser=${{ matrix.browser }} \
+            -Dheadless=true \
+            --no-transfer-progress
+        # --no-transfer-progress suppresses Maven's verbose download progress bars
+        # so the CI log is readable.
+
+      # ── 5. Upload Surefire reports ─────────────────────────────────────────
+      # Surefire writes XML results to target/surefire-reports/.
+      # Uploading them as artifacts makes them downloadable from the Actions UI
+      # for 30 days — mirrors the Python pipeline's HTML report artifacts.
+      - name: Upload Surefire report (${{ matrix.browser }})
+        uses: actions/upload-artifact@v4
+        # always() ensures the upload runs even when the test step fails —
+        # you want the report most when tests fail.
+        if: always()
+        with:
+          name: surefire-report-${{ matrix.browser }}
+          path: target/surefire-reports/
+          retention-days: 30
+
+      # ── 6. Upload failure screenshots ─────────────────────────────────────
+      # BaseTest.captureScreenshot() saves PNGs to reports/screenshots/.
+      # Uploading them here makes them accessible from the Actions run summary.
+      - name: Upload failure screenshots (${{ matrix.browser }})
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots-${{ matrix.browser }}
+          path: reports/screenshots/
+          retention-days: 30
