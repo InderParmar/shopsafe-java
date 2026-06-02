@@ -196,5 +196,5 @@ This project is a direct port of the [Python/pytest version](https://github.com/
 ## Author
 
 **Inderpreet Singh Parmar**
-QA Automation Engineer · Toronto, ON
+QA Automation Engineer · Toronto, ON · Bachelor of Software Engineering
 [LinkedIn](https://ca.linkedin.com/in/inderpreet-singh-parmar-7abb23230) · [Portfolio](https://inder-website.vercel.app) · [GitHub](https://github.com/InderParmar)
