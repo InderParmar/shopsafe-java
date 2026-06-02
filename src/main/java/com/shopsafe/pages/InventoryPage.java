@@ -1,8 +1,10 @@
 package com.shopsafe.pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 
 import java.util.Comparator;
@@ -207,11 +209,12 @@ public class InventoryPage extends BasePage {
      * Python equivalent: inventory_page.go_to_cart() → CartPage
      */
     public CartPage goToCart() {
-        click(CART_ICON);
+        WebElement cartIcon = wait.until(
+            ExpectedConditions.presenceOfElementLocated(CART_ICON));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", cartIcon);
         waitForUrlContaining("cart");
         return new CartPage(driver);
     }
-
     // ── Page state ────────────────────────────────────────────────────────────
 
     /**
