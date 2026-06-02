@@ -6,7 +6,9 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 /**
  * CartPage — all Selenium interactions on /cart.html.
  *
@@ -145,7 +147,9 @@ public class CartPage extends BasePage {
      * Python equivalent: cart_page.proceed_to_checkout() → CheckoutPage
      */
     public CheckoutPage proceedToCheckout() {
-        click(CHECKOUT_BUTTON);
+        WebElement btn = wait.until(
+            ExpectedConditions.presenceOfElementLocated(CHECKOUT_BUTTON));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
         waitForUrlContaining("checkout-step-one");
         return new CheckoutPage(driver);
     }
