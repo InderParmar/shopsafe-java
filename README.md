@@ -13,7 +13,7 @@
 >
 > Converted from the [Python/pytest original](https://github.com/InderParmar/selenium-ecommerce-qa-suite)
 > using the identical Page Object Model architecture — demonstrating the same framework
-> patterns in the language stack used in enterprise QA (Veeva, Workday, SAP).
+> patterns in the language stack used in enterprise QA.
 
 ---
 
